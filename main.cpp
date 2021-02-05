@@ -53,53 +53,6 @@ std::vector<std::string> Rec_Find_Files (const std::string current_dir
     closedir(pDir);
     return File_list;
 }
-
-std::vector<std::string> Find_Virus (std::vector<std::string> Files, std::vector<std::string> Virus_sign)
-{
-    char hex[]={'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-    ifstream my_file;
-    std::vector<std::string> DB_files;
-    for (int i = 0; i < Files.size(); i++)
-    {
-        my_file.open(Files[i]);
-        string line = "";
-        string file_line = "";
-        if(my_file.is_open())
-        {
-            while(my_file>>line)
-            {
-                file_line += line + " ";
-            }
-            
-        }
-        my_file.close();
-        my_file.clear();
-        line = "";
-        for (int k = 0; k< file_line.length();k++)
-        {
-            int a =(int)(file_line.at(k));
-            cout << a << endl;
-            while (a>0)
-            {
-                int dec_num = a%16;
-                line = hex[dec_num] +line;
-                a = a/16;
-            }
-        }
-        cout << line << endl;
-        
-        for (int n = 0; n<Files[i].length(); n++)
-        {
-            
-            
-        }
-    }
-
-
-
-
-    return DB_files;
-}
 string add_string(string Folder, string virus)
 {
     string return_s;
@@ -109,10 +62,66 @@ string add_string(string Folder, string virus)
         filename.erase(0, filename.find("/")+1);
     }
     Folder.erase(Folder.find(filename)-1, filename.size()+1);
-    cout << Folder << endl;
     return_s = "File " + filename + " at " + Folder + " has been infected with " + virus;
     return return_s;
 }
+
+std::vector<std::string> Find_Virus (std::vector<std::string> Files, std::vector<std::string> Virus_sign)
+{
+    char hex[]={'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+    ifstream my_file;
+    string temp;
+    string virus_hex;
+    std::vector<std::string> DB_files;
+    for (int i = 0; i < Files.size(); i++)
+    {
+        my_file.open(Files[i]);
+        string line = "";
+        string file_line = "";
+        if(my_file.is_open())
+        {
+            while(getline(my_file, line))
+            {
+                file_line += line;
+            }
+            
+        }
+        my_file.close();
+        my_file.clear();
+        line = "";
+        for (int k = 0; k< file_line.length();k++)
+        {
+            int a =(int)(file_line.at(k));
+            int dec_num = a/16;
+            line += hex[dec_num];
+            dec_num = a%16;
+            line += hex[dec_num];
+            
+        }
+        file_line = "";
+        
+        for (int n = 0; n<Virus_sign.size(); n++)
+        {
+            virus_hex = Virus_sign[n].erase(0, Virus_sign[n].find("=")+1);
+            //cout << "Virus: " << virus_hex << endl;
+            //cout << "File: " << line << endl;
+            if (line.length()>=virus_hex.length())
+            {
+                file_line = line.erase(virus_hex.length());
+                
+                if(file_line == virus_hex)
+                {
+                    DB_files.push_back(add_string(Files[i], Virus_sign[n]));
+                    cout << "virus hittat" << endl;
+                }
+            }
+            
+        }
+        virus_hex="";
+    }
+    return DB_files;
+}
+
 std::vector<std::string> Get_signatures(const std::string dir_infile)
 {
     std::vector<std::string> DB_files;
@@ -128,7 +137,6 @@ std::vector<std::string> Get_signatures(const std::string dir_infile)
     {
         while(getline(in_file, line))
         {
-            //line.erase(0, line.find("=")+1);
             DB_files.push_back(line);
         }
         in_file.close();
@@ -141,7 +149,7 @@ int main(int argc, char* argv[])
     Files = Rec_Find_Files("./TestDir", Files);
     Files = Find_Virus(Files, Get_signatures("signatures.db"));
     string test = add_string("./Testdir/testmap/map2/apa", "12345678");
-    cout << test << endl;
+    
    
 
 
