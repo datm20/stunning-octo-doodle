@@ -92,23 +92,27 @@ std::vector<std::string> Find_Virus (std::vector<std::string> Files, std::vector
         for (int k = 0; k< file_line.length();k++)
         {
             int a =(int)(file_line.at(k));
-            int dec_num = a/16;
-            line += hex[dec_num];
-            dec_num = a%16;
-            line += hex[dec_num];
+            string temp1 = "";
+            while (a>0)
+            {
+                int dec_num = a%16;
+                temp1 = hex[dec_num] + temp1;
+                a = a/16;
+            }
+            line += temp1;
             
         }
         file_line = "";
+        cout << line << endl;
         
         for (int n = 0; n<Virus_sign.size(); n++)
         {
             virus_hex = Virus_sign[n].erase(0, Virus_sign[n].find("=")+1);
-            //cout << "Virus: " << virus_hex << endl;
-            //cout << "File: " << line << endl;
             if (line.length()>=virus_hex.length())
             {
                 file_line = line.erase(virus_hex.length());
-                
+                cout << "Virus: " << virus_hex << endl;
+                cout << "File:  " << line << endl;
                 if(file_line == virus_hex)
                 {
                     DB_files.push_back(add_string(Files[i], Virus_sign[n]));
@@ -146,7 +150,7 @@ std::vector<std::string> Get_signatures(const std::string dir_infile)
 int main(int argc, char* argv[])
 {
     std::vector<std::string> Files;
-    Files = Rec_Find_Files("./TestDir", Files);
+    Files = Rec_Find_Files("./TestDir/SubDir7/SubSubDir73/", Files);
     Files = Find_Virus(Files, Get_signatures("signatures.db"));
     string test = add_string("./Testdir/testmap/map2/apa", "12345678");
     
@@ -185,3 +189,4 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
