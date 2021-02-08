@@ -5,6 +5,9 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <sstream>
+#include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -18,15 +21,16 @@ std::vector<std::string> Rec_Find_Files (const std::string current_dir
     pDir = opendir(current_dir.c_str());
     if(pDir == NULL)
     {
-        cout << "pDir was not initialized properly" << endl;
-        //fixa avbryt sak
+        cout << "opendir: Path does not exist or could not read." << endl;
+        
         
     }
     std::string compare = ".";
     std::string compare2 = "..";
     std::string compare3 = "createdir.sh";
     std::string compare4 = "h4x0r.pdf";
-    while(pent = readdir(pDir))
+    //pent = readdir(pDir);
+    while((pent = ::readdir(pDir)))
     {
         switch(pent->d_type)
         {
@@ -91,30 +95,34 @@ std::vector<std::string> Find_Virus (std::vector<std::string> Files, std::vector
         line = "";
         for (int k = 0; k< file_line.length();k++)
         {
-            int a =(int)(file_line.at(k));
+            std::stringstream stream;
             string temp1 = "";
-            while (a>0)
+            stream << std::hex << int(file_line.at(k));
+            string mid(stream.str());
+            temp1 = mid;
+            if (temp1.length() > 2)
             {
-                int dec_num = a%16;
-                temp1 = hex[dec_num] + temp1;
-                a = a/16;
+                cout << temp1 << endl;
+                temp1.erase(temp1.begin(), temp1.end()-2);
+                cout << temp1 << endl;
             }
             line += temp1;
-            
+            mid = "";
         }
-        file_line = "";
-        cout << line << endl;
         
+        cout << line << endl;
+        file_line = "";
         for (int n = 0; n<Virus_sign.size(); n++)
         {
             virus_hex = Virus_sign[n].erase(0, Virus_sign[n].find("=")+1);
             if (line.length()>=virus_hex.length())
             {
                 file_line = line.erase(virus_hex.length());
-                cout << "Virus: " << virus_hex << endl;
-                cout << "File:  " << line << endl;
+                
                 if(file_line == virus_hex)
                 {
+                    cout << "Virus: " << virus_hex << endl;
+                    cout << "File:  " << line << endl;
                     DB_files.push_back(add_string(Files[i], Virus_sign[n]));
                     cout << "virus hittat" << endl;
                 }
