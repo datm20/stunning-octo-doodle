@@ -11,6 +11,9 @@
 
 using namespace std;
 
+//Gjord av David Tammpere och Melker Månsson
+//Davids email: tammperedavid@gmail.com
+//Melkers email: melkermansson@gmail.com
 
 
 std::vector<std::string> Rec_Find_Files (const std::string current_dir
@@ -22,21 +25,15 @@ std::vector<std::string> Rec_Find_Files (const std::string current_dir
     if(pDir == NULL)
     {
         cout << "opendir: Path does not exist or could not read." << endl;
-        
-        
     }
-    std::string compare = ".";
-    std::string compare2 = "..";
-    std::string compare3 = "createdir.sh";
-    std::string compare4 = "h4x0r.pdf";
-    //pent = readdir(pDir);
+    string compare = ".";
+    string compare2 = "..";
     while((pent = ::readdir(pDir)))
     {
         switch(pent->d_type)
         {
             case DT_REG:
-                if (pent->d_name !=compare && pent->d_name != compare2
-                && pent->d_name != compare3 && pent->d_name != compare4)
+                if (pent->d_name !=compare && pent->d_name != compare2)
                 {
                     string FileFound = current_dir + "/" + pent->d_name;
                     File_list.push_back(FileFound);
@@ -72,62 +69,54 @@ string add_string(string Folder, string virus)
 
 std::vector<std::string> Find_Virus (std::vector<std::string> Files, std::vector<std::string> Virus_sign)
 {
-    char hex[]={'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     ifstream my_file;
-    string temp;
     string virus_hex;
+    string line;
+    string file_line;
     std::vector<std::string> DB_files;
     for (int i = 0; i < Files.size(); i++)
     {
-        my_file.open(Files[i]);
-        string line = "";
-        string file_line = "";
+        string mid;
+        my_file.open(Files[i], ios::binary);
+        line = "";
         if(my_file.is_open())
         {
-            while(getline(my_file, line))
-            {
-                file_line += line;
-            }
-            
+            auto mem = std::vector<char>(std::istreambuf_iterator<char>(my_file), std::istreambuf_iterator<char>());
+                for (char c : mem)
+                {
+                    stringstream ss;
+                    string mid;
+                    ss << std::hex << static_cast<int>(c) << endl;
+                    ss >> mid;
+                    if(mid.length() < 2)
+                    {
+                        mid = "0" + mid;
+                    }
+                    while (mid.length() > 2)
+                    {
+                        mid.erase(0,1);
+                    }
+                    line += mid;
+                }
         }
         my_file.close();
         my_file.clear();
-        line = "";
-        for (int k = 0; k< file_line.length();k++)
-        {
-            std::stringstream stream;
-            string temp1 = "";
-            stream << std::hex << int(file_line.at(k));
-            string mid(stream.str());
-            temp1 = mid;
-            if (temp1.length() > 2)
-            {
-                cout << temp1 << endl;
-                temp1.erase(temp1.begin(), temp1.end()-2);
-                cout << temp1 << endl;
-            }
-            line += temp1;
-            mid = "";
-        }
-        
-        cout << line << endl;
         file_line = "";
         for (int n = 0; n<Virus_sign.size(); n++)
         {
-            virus_hex = Virus_sign[n].erase(0, Virus_sign[n].find("=")+1);
+            virus_hex = Virus_sign[n];
+            virus_hex.erase(0, Virus_sign[n].find("=")+1);
             if (line.length()>=virus_hex.length())
             {
-                file_line = line.erase(virus_hex.length());
-                
+                file_line = line;
+                file_line.erase(virus_hex.length());
                 if(file_line == virus_hex)
                 {
-                    cout << "Virus: " << virus_hex << endl;
-                    cout << "File:  " << line << endl;
-                    DB_files.push_back(add_string(Files[i], Virus_sign[n]));
-                    cout << "virus hittat" << endl;
+                    string virus = Virus_sign[n];
+                    virus.erase(virus.find(virus_hex)-1);
+                    DB_files.push_back(add_string(Files[i], virus));
                 }
-            }
-            
+            } 
         }
         virus_hex="";
     }
@@ -155,12 +144,94 @@ std::vector<std::string> Get_signatures(const std::string dir_infile)
     }
     return DB_files;
 }
+
+void print_log(vector<string> Print_ls)
+{
+    fstream out_file;
+    out_file.open("dv1620.log", ios::out);
+    if(!out_file)
+    {
+        cout << "Error in creating log file" << endl;
+    }
+    else
+    {
+        cout << "Log file created successfully" << endl;
+        cout << "Writing to file..." << endl;
+        for (int i = 0; i < Print_ls.size(); i++)
+        {
+            out_file << Print_ls[i] << endl;
+        }
+        cout << "Writing successfully completed" << endl;
+        out_file.close();
+    }
+}
+void help()
+{
+    cout << "Help called:" << endl;
+    cout << "The program expects that after the program name, the " << endl;
+    cout << "location for the Diretory that shall be searched through will be" << endl;
+    cout << "User: ./Programname ./Directory" << endl;
+    cout << "OR" << endl;
+    cout << "User: ./Programname ./Directory Signatures.db" << endl;
+    cout << "Depending on if the signatures.db has moved" << endl; 
+}
 int main(int argc, char* argv[])
 {
-    std::vector<std::string> Files;
-    Files = Rec_Find_Files("./TestDir/SubDir7/SubSubDir73/", Files);
-    Files = Find_Virus(Files, Get_signatures("signatures.db"));
-    string test = add_string("./Testdir/testmap/map2/apa", "12345678");
+    string help_call = "-help";
+    
+    if (argc == 1)
+    {
+        cout << "Not enough arguments!" << endl;
+        cout << "Type -help for help" << endl;
+        return 0;
+    }
+    else if (argv[1] == help_call)
+    {
+        help();
+        return 0;
+    }
+    else if (argc == 2)
+    {
+        DIR *pDir;
+        struct dirent *pent;
+        pDir = opendir(argv[1]);
+        if(pDir == NULL)
+        {
+            cout << "Directory does not exist" << endl;
+        }
+        else
+        {
+            std::vector<std::string> Files;
+            Files = Rec_Find_Files(argv[1], Files);
+            Files = Find_Virus(Files, Get_signatures("signatures.db"));
+            print_log(Files);
+        }
+    }
+    else if (argc == 3)
+    {
+        DIR *pDir;
+        struct dirent *pent;
+        pDir = opendir(argv[1]);
+        if(pDir == NULL)
+        {
+            cout << "Directory does not exist" << endl;
+        }
+        else
+        {
+            std::vector<std::string> Files;
+            Files = Rec_Find_Files(argv[1], Files);
+            Files = Find_Virus(Files, Get_signatures(argv[2]));
+            print_log(Files);
+        }
+    }
+    else
+    {
+        cout << "The program could not understand what you where trying to do" << endl;
+        cout << "Type -help for help" << endl;
+    }
+
+
+    
     
    
 
@@ -168,29 +239,8 @@ int main(int argc, char* argv[])
 
 
 
-    for(int i = 0; i < Files.size(); i++)
-    {
-        cout << Files[i] << endl;
-    }
-    string help_call = "-help";
-    cout << "Hello World!" << endl;
-    cout << "MÃ¤ngden argument: " << argc << endl;
-    for(int i = 0; i < argc; i++)
-    {
-        cout << "Argumentet ["<< i<<"]: " << argv[i] << endl;
-    }
     
-    if (argc == 2)
-    {
-        cout << "Right amount of arguments" << endl;
-        cout << argv[1] << endl;
-        
-        if (argv[1] == help_call)
-        {
-            
-            cout << "Help called" << endl;
-        }
-    }
+    
     
     
 
