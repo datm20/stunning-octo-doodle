@@ -193,35 +193,60 @@ int main(int argc, char* argv[])
     else if (argc == 2)
     {
         DIR *pDir;
-        struct dirent *pent;
         pDir = opendir(argv[1]);
         if(pDir == NULL)
         {
-            cout << "Directory does not exist" << endl;
+            cout << "The argument for directory is not a directory or does nont exist" << endl;
+            cout << "Please try again..." << endl;
         }
         else
         {
-            std::vector<std::string> Files;
-            Files = Rec_Find_Files(argv[1], Files);
-            Files = Find_Virus(Files, Get_signatures("signatures.db"));
-            print_log(Files);
+            ifstream sfile;
+            sfile.open("signatures.db");
+            if(sfile.is_open())
+            {
+                std::vector<std::string> Files;
+                Files = Rec_Find_Files(argv[1], Files);
+                Files = Find_Virus(Files, Get_signatures("signatures.db"));
+                print_log(Files);
+                
+            }
+            else
+            {
+                cout << "The signatures file is either missing or have been renamed" << endl;
+                cout << "Make sure that the file is called 'signatures.db'" << endl;
+            }
+            
         }
+        
     }
     else if (argc == 3)
     {
         DIR *pDir;
-        struct dirent *pent;
         pDir = opendir(argv[1]);
         if(pDir == NULL)
         {
-            cout << "Directory does not exist" << endl;
+            cout << "The argument for directory is not a directory or does nont exist" << endl;
+            cout << "Please try again..." << endl;
         }
         else
         {
-            std::vector<std::string> Files;
-            Files = Rec_Find_Files(argv[1], Files);
-            Files = Find_Virus(Files, Get_signatures(argv[2]));
-            print_log(Files);
+            ifstream sfile;
+            sfile.open(argv[2]);
+            if(sfile.is_open())
+            {
+                std::vector<std::string> Files;
+                Files = Rec_Find_Files(argv[1], Files);
+                Files = Find_Virus(Files, Get_signatures("signatures.db"));
+                print_log(Files);
+                
+            }
+            else
+            {
+                cout << "The signatures file is either missing or have been renamed" << endl;
+                cout << "Make sure that the spelling of the file is correct" << endl;
+            }
+            
         }
     }
     else
@@ -229,21 +254,6 @@ int main(int argc, char* argv[])
         cout << "The program could not understand what you where trying to do" << endl;
         cout << "Type -help for help" << endl;
     }
-
-
-    
-    
-   
-
-
-
-
-
-    
-    
-    
-    
-
 
     return 0;
 }
