@@ -1,29 +1,20 @@
-IDIR =../include
-CC=gcc
-CFLAGS=-I$(IDIR)
 
-ODIR=obj
-LDIR =../lib
+.PHONY = all clean
 
-LIBS=-lm
+cc = gcc
 
-_DEPS = main.cpp
-DEPS = $(PATSUBST %,$(IDIR)/%,$(_DEPS))
+LINKERFLAGS = - Wall -Werror -Wpedantic -Wextra
 
-_OBJ = main.cpp main.cpp
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))¨
+all: main
 
-$(ODIR)/%.0: %.C $(DEPS)
-	$(CC) -o $@ $^ $(CFLAGS)
+main: main.o
+	@echo "checking.."
+	${CC} ${LINKERFLAG} $< -o $@
 
-Filename: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
-
-.cpp.o:
-	$(CC) $(CFLAGS) $< -o $@
-
-.PHONY: clean 
+main.o: main.cpp
+	@echo "Creating objekt.."
+	${CC} -c $<
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
-
+	@echo "cleaning up..."
+	rm -rvf *.o jesus.exe
